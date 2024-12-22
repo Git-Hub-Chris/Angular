@@ -19,7 +19,7 @@ import {
   Resource,
   ResourceRef,
 } from './api';
-import {ValueEqualityFn, SIGNAL, SignalNode} from '@angular/core/primitives/signals';
+import {ValueEqualityFn} from '@angular/core/primitives/signals';
 import {Injector} from '../di/injector';
 import {assertInInjectionContext} from '../di/contextual';
 import {inject} from '../di/injector_compatibility';
@@ -66,17 +66,9 @@ abstract class BaseWritableResource<T> implements WritableResource<T> {
   }
 
   set(value: T | undefined): void {
-    // Set the value signal and check whether its `version` changes. This will tell us
-    // if the value signal actually updated or not.
-    const prevVersion = (this.value[SIGNAL] as SignalNode<T>).version;
     this.rawSetValue(value);
-    if ((this.value[SIGNAL] as SignalNode<T>).version === prevVersion) {
-      // The value must've been equal to the previous, so no need to change states.
-      return;
-    }
 
-    // We're departing from whatever state the resource was in previously, and entering
-    // Local state.
+    // We're departing from whatever state the resource was in previously, and entering Local state.
     this.onLocalValue();
     this.status.set(ResourceStatus.Local);
     this.error.set(undefined);

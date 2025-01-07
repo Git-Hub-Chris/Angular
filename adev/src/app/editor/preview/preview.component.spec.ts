@@ -71,8 +71,8 @@ describe('Preview', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    expect(component.previewIframe?.nativeElement).toBeTruthy();
-    expect(component.previewIframe?.nativeElement?.src).toBe(PREVIEW_URL);
+    expect(component.previewIframe()?.nativeElement).toBeTruthy();
+    expect(component.previewIframe()?.nativeElement?.src).toBe(PREVIEW_URL);
   });
 
   it('should not render loading elements if the loadingStep is READY or ERROR', () => {

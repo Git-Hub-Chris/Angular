@@ -14,9 +14,9 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  ViewChild,
   effect,
   inject,
+  viewChild,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {delay, filter, map} from 'rxjs';
@@ -40,7 +40,7 @@ type PreviewUrlEmittedValue = {
   imports: [NgComponentOutlet],
 })
 export class Preview implements AfterViewInit {
-  @ViewChild('preview') previewIframe: ElementRef<HTMLIFrameElement> | undefined;
+  readonly previewIframe = viewChild<ElementRef<HTMLIFrameElement>>('preview');
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -67,7 +67,7 @@ export class Preview implements AfterViewInit {
   ngAfterViewInit() {
     this.nodeRuntimeSandbox.previewUrl$
       .pipe(
-        map((url) => ({url, previewIframe: this.previewIframe})),
+        map((url) => ({url, previewIframe: this.previewIframe()})),
         filter((value): value is PreviewUrlEmittedValue => !!value.previewIframe),
         // Note: The delay is being used here to workaround the flickering issue
         // while switching tutorials

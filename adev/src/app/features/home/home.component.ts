@@ -16,8 +16,8 @@ import {
   OnDestroy,
   OnInit,
   PLATFORM_ID,
-  ViewChild,
   inject,
+  viewChild,
 } from '@angular/core';
 import {WINDOW, shouldReduceMotion, isIos} from '@angular/docs';
 import {ActivatedRoute, RouterLink} from '@angular/router';
@@ -39,7 +39,7 @@ export const TUTORIALS_HOMEPAGE_DIRECTORY = 'homepage';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Home implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('home') home!: ElementRef<HTMLDivElement>;
+  readonly home = viewChild.required<ElementRef<HTMLDivElement>>('home');
 
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
@@ -63,7 +63,7 @@ export default class Home implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.element = this.home.nativeElement;
+    this.element = this.home().nativeElement;
 
     if (isPlatformBrowser(this.platformId)) {
       // Always scroll to top on home page (even for navigating back)

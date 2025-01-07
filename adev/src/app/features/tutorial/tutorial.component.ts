@@ -20,7 +20,7 @@ import {
   Signal,
   signal,
   Type,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {
@@ -69,11 +69,10 @@ const INTRODUCTION_LABEL = 'Introduction';
   providers: [SplitResizerHandler],
 })
 export default class Tutorial implements AfterViewInit {
-  @ViewChild('content') content!: ElementRef<HTMLDivElement>;
-  @ViewChild('editor') editor: ElementRef<HTMLDivElement> | undefined;
-  @ViewChild('resizer') resizer!: ElementRef<HTMLDivElement>;
-  @ViewChild('revealAnswerButton')
-  readonly revealAnswerButton: ElementRef<HTMLButtonElement> | undefined;
+  readonly content = viewChild<ElementRef<HTMLDivElement>>('content');
+  readonly editor = viewChild<ElementRef<HTMLDivElement>>('editor');
+  readonly resizer = viewChild.required<ElementRef<HTMLDivElement>>('resizer');
+  readonly revealAnswerButton = viewChild<ElementRef<HTMLButtonElement>>('revealAnswerButton');
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly environmentInjector = inject(EnvironmentInjector);
@@ -122,7 +121,12 @@ export default class Tutorial implements AfterViewInit {
 
   async ngAfterViewInit(): Promise<void> {
     if (isPlatformBrowser(this.platformId)) {
-      this.splitResizerHandler.init(this.elementRef, this.content, this.resizer, this.editor);
+      this.splitResizerHandler.init(
+        this.elementRef,
+        this.content()!,
+        this.resizer(),
+        this.editor(),
+      );
 
       this.loadEmbeddedEditorComponent().then((editorComponent) => {
         this.embeddedEditorComponent = editorComponent;

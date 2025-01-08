@@ -24,4 +24,7 @@ Learn about how you can migrate your existing angular project to the latest feat
   <docs-card title="Queries as signal" link="Migrate now" href="reference/migrations/signal-queries">
     Convert existing decorator query fields to the improved signal queries API. The API is now production ready.
   </docs-card>
+  <docs-card title="Self-closing tags" link="Migrate now" href="reference/migrations/self-closing-tags">
+    Convert component templates to use self-closing tags where possible.
+  </docs-card>
 </docs-card-container>

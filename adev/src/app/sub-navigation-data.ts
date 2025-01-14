@@ -1395,6 +1395,11 @@ const REFERENCE_SUB_NAVIGATION_DATA: NavigationItem[] = [
         path: 'extended-diagnostics/NG8113',
         contentPath: 'reference/extended-diagnostics/NG8113',
       },
+      {
+        label: 'NG8114: Functions must be invoked in text interpolation',
+        path: 'extended-diagnostics/NG8114',
+        contentPath: 'reference/extended-diagnostics/NG8114',
+      }
     ],
   },
   {

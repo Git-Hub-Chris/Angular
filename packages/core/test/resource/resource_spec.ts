@@ -11,6 +11,7 @@ import {
   EnvironmentInjector,
   Injector,
   resource,
+  ResourceRef,
   ResourceStatus,
   signal,
 } from '@angular/core';
@@ -410,5 +411,19 @@ describe('resource', () => {
 
     // @ts-expect-error
     readonlyRes.value.set;
+  });
+
+  it('should infer request type correctly', () => {
+    // This is a typing test
+    const array = signal<number[] | undefined>([3]);
+    const res: ResourceRef<number[]> = resource({
+      request: () => array(),
+      loader: async ({request}) => {
+        // We check the undefined is correctly removed from the type
+        const arr: number[] = request;
+        return Promise.resolve(arr);
+      },
+      injector: TestBed.inject(Injector),
+    });
   });
 });

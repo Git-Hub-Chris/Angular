@@ -50,6 +50,40 @@ runInEachFileSystem(() => {
       expect(diags[0].code).toBe(ngErrorCode(ErrorCode.MISSING_STRUCTURAL_DIRECTIVE));
     });
 
+    it('should produce a warning if ngTemplateOutlet is used without importing the directive', () => {
+      const fileName = absoluteFrom('/main.ts');
+      const {program, templateTypeChecker} = setup([
+        {
+          fileName,
+          templates: {
+            'TestCmp': `<ng-container *ngTemplateOutlet="svk; context: myContext"></ng-container>
+                        <ng-template #svk let-person="localSk"><span>Ahoj {{ person }}!</span></ng-template>`,
+          },
+          declarations: [
+            {
+              name: 'TestCmp',
+              type: 'directive',
+              selector: `[test-cmp]`,
+              isStandalone: true,
+            },
+          ],
+        },
+      ]);
+      const sf = getSourceFileOrError(program, fileName);
+      const component = getClass(sf, 'TestCmp');
+      const extendedTemplateChecker = new ExtendedTemplateCheckerImpl(
+        templateTypeChecker,
+        program.getTypeChecker(),
+        [missingStructuralDirectiveCheck],
+        {strictNullChecks: true} /* options */,
+      );
+      const diags = extendedTemplateChecker.getDiagnosticsForComponent(component);
+
+      expect(diags.length).toBe(1);
+      expect(diags[0].category).toBe(ts.DiagnosticCategory.Warning);
+      expect(diags[0].code).toBe(ngErrorCode(ErrorCode.MISSING_STRUCTURAL_DIRECTIVE));
+    });
+
     it('should *not* produce a warning for custom structural directives that are imported', () => {
       const fileName = absoluteFrom('/main.ts');
       const {program, templateTypeChecker} = setup([
@@ -159,7 +193,15 @@ runInEachFileSystem(() => {
         {
           fileName,
           templates: {
-            'TestCmp': `<div *ngIf="exp"></div>`,
+            'TestCmp': `<div *ngIf="exp as value">
+                          <li *ngFor="let item of items; index as i; trackBy: trackByFn">
+                            {{ item.name }}
+                          </li>
+                          <container-element [ngSwitch]="switch_exp">
+                            <div *ngSwitchCase="match_exp"></div>
+                            <div *ngSwitchDefault></div>
+                          </container-element>
+                        </div>`,
           },
           declarations: [
             {
@@ -184,7 +226,7 @@ runInEachFileSystem(() => {
       expect(diags.length).toBe(0);
     });
 
-    it('should not warn for templates with no structural directives', () => {
+    it('should *not* produce a warning for templates with no structural directives', () => {
       const fileName = absoluteFrom('/main.ts');
       const {program, templateTypeChecker} = setup([
         {

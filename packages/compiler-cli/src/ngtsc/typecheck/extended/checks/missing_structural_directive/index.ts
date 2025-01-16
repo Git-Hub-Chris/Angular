@@ -9,7 +9,6 @@
 import {AST, TmplAstNode, TmplAstTemplate} from '@angular/compiler';
 import ts from 'typescript';
 
-import {NgCompilerOptions} from '../../../../core/api';
 import {ErrorCode, ExtendedTemplateDiagnosticName} from '../../../../diagnostics';
 import {NgTemplateDiagnostic} from '../../../api';
 import {TemplateCheckFactory, TemplateCheckWithVisitor, TemplateContext} from '../../api';
@@ -22,7 +21,8 @@ import {TemplateCheckFactory, TemplateCheckWithVisitor, TemplateContext} from '.
 export const KNOWN_CONTROL_FLOW_DIRECTIVES = new Set([
   'ngIf',
   'ngFor',
-  'ngSwitch',
+  'ngForOf',
+  'ngForTrackBy',
   'ngSwitchCase',
   'ngSwitchDefault',
 ]);
@@ -65,17 +65,16 @@ class MissingStructuralDirectiveCheck extends TemplateCheckWithVisitor<ErrorCode
     if (!customStructuralDirective) return [];
 
     const symbol = ctx.templateTypeChecker.getSymbolOfNode(node, component);
-    if (symbol === null || symbol.directives.length > 0) {
+    if (symbol?.directives.length) {
       return [];
     }
 
     const sourceSpan = customStructuralDirective.keySpan || customStructuralDirective.sourceSpan;
     const errorMessage =
-      `An unknown structural directive \`${customStructuralDirective.name}\` was used in the template, ` +
+      `A structural directive \`${customStructuralDirective.name}\` was used in the template ` +
       `without a corresponding import in the component. ` +
       `Make sure that the directive is included in the \`@Component.imports\` array of this component.`;
-    const diagnostic = ctx.makeTemplateDiagnostic(sourceSpan, errorMessage);
-    return [diagnostic];
+    return [ctx.makeTemplateDiagnostic(sourceSpan, errorMessage)];
   }
 }
 
@@ -85,7 +84,5 @@ export const factory: TemplateCheckFactory<
 > = {
   code: ErrorCode.MISSING_STRUCTURAL_DIRECTIVE,
   name: ExtendedTemplateDiagnosticName.MISSING_STRUCTURAL_DIRECTIVE,
-  create: (options: NgCompilerOptions) => {
-    return new MissingStructuralDirectiveCheck();
-  },
+  create: () => new MissingStructuralDirectiveCheck(),
 };

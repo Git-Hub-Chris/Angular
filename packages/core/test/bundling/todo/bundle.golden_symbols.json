@@ -481,6 +481,7 @@
   "shimStylesContent",
   "shouldAddViewToDom",
   "shouldSearchParent",
+  "stashEventListeners",
   "storeLViewOnDestroy",
   "stringify",
   "stringifyCSSSelector",

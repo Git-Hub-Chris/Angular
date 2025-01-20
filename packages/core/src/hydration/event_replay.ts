@@ -22,7 +22,7 @@ import {APP_BOOTSTRAP_LISTENER, ApplicationRef} from '../application/application
 import {ENVIRONMENT_INITIALIZER, Injector} from '../di';
 import {inject} from '../di/injector_compatibility';
 import {Provider} from '../di/interface/provider';
-import {setStashFn} from '../render3/instructions/listener';
+import {clearStashFn, setStashFn} from '../render3/instructions/listener';
 import {RElement} from '../render3/interfaces/renderer_dom';
 import {CLEANUP, LView, TView} from '../render3/interfaces/view';
 import {unwrapRNode} from '../render3/util/view_utils';
@@ -98,6 +98,7 @@ export function withEventReplay(): Provider[] {
       {
         provide: ENVIRONMENT_INITIALIZER,
         useValue: () => {
+          const appId = inject(APP_ID);
           const injector = inject(Injector);
           const appRef = injector.get(ApplicationRef);
           // We have to check for the appRef here due to the possibility of multiple apps
@@ -106,7 +107,7 @@ export function withEventReplay(): Provider[] {
           if (!appsWithEventReplay.has(appRef)) {
             const jsActionMap = inject(JSACTION_BLOCK_ELEMENT_MAP);
             if (shouldEnableEventReplay(injector)) {
-              setStashFn((rEl: RElement, eventName: string, listenerFn: VoidFunction) => {
+              setStashFn(appId, (rEl: RElement, eventName: string, listenerFn: VoidFunction) => {
                 sharedStashFunction(rEl, eventName, listenerFn);
                 sharedMapFunction(rEl, jsActionMap);
               });
@@ -143,7 +144,7 @@ export function withEventReplay(): Provider[] {
                 // Clean up the reference to the function set by the environment initializer,
                 // as the function closure may capture injected elements and prevent them
                 // from being properly garbage collected.
-                setStashFn(() => {});
+                clearStashFn(appId);
               }
             });
 

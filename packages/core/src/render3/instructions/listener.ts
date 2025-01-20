@@ -14,7 +14,7 @@ import {NodeOutputBindings, TNode, TNodeType} from '../interfaces/node';
 import {GlobalTargetResolver, Renderer} from '../interfaces/renderer';
 import {RElement} from '../interfaces/renderer_dom';
 import {isDirectiveHost} from '../interfaces/type_checks';
-import {CLEANUP, CONTEXT, LView, RENDERER, TView} from '../interfaces/view';
+import {CLEANUP, CONTEXT, INJECTOR, LView, RENDERER, TView} from '../interfaces/view';
 import {assertTNodeType} from '../node_assert';
 import {profiler} from '../profiler';
 import {ProfilerEvent} from '../profiler_types';
@@ -29,6 +29,7 @@ import {
 
 import {markViewDirty} from './mark_view_dirty';
 import {handleError, loadComponentRenderer} from './shared';
+import {APP_ID} from '../../application/application_tokens';
 
 /**
  * Contains a reference to a function that disables event replay feature
@@ -36,10 +37,25 @@ import {handleError, loadComponentRenderer} from './shared';
  * an actual implementation when the event replay feature is enabled via
  * `withEventReplay()` call.
  */
-let stashEventListener = (el: RElement, eventName: string, listenerFn: (e?: any) => any) => {};
+type StashEventListener = (el: RElement, eventName: string, listenerFn: (e?: any) => any) => void;
 
-export function setStashFn(fn: typeof stashEventListener) {
-  stashEventListener = fn;
+/**
+ * A map of `APP_ID` to stash event listener functions. The map is used to prevent
+ * conflicts because there might be multiple applications bootstrapped simultaneously on
+ * the client. That might happen in cases when one app is rendered on the server and
+ * bootstrapped on the client, and another microfrontend app is also bootstrapped on the client.
+ *
+ * The race condition may occur when the client-only application overrides the stash event
+ * listener, which is necessary for the application rendered on the server and hydrated on the client.
+ */
+const stashEventListeners = new Map<string, StashEventListener>();
+
+export function setStashFn(appId: string, fn: StashEventListener) {
+  stashEventListeners.set(appId, fn);
+}
+
+export function clearStashFn(appId: string): void {
+  stashEventListeners.delete(appId);
 }
 
 /**
@@ -217,7 +233,9 @@ export function listenerInternal(
       processOutputs = false;
     } else {
       listenerFn = wrapListener(tNode, lView, context, listenerFn);
-      stashEventListener(native, eventName, listenerFn);
+      const appId = lView[INJECTOR].get(APP_ID);
+      const stashEventListener = stashEventListeners.get(appId);
+      stashEventListener?.(native, eventName, listenerFn);
       const cleanupFn = renderer.listen(target as RElement, eventName, listenerFn);
       ngDevMode && ngDevMode.rendererAddEventListener++;
 

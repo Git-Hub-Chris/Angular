@@ -602,6 +602,7 @@
   "signal",
   "signalAsReadonlyFn",
   "signalSetFn",
+  "stashEventListeners",
   "storeLViewOnDestroy",
   "stringify",
   "stringifyCSSSelector",

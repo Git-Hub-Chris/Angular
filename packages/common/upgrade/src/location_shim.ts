@@ -94,8 +94,8 @@ export class $locationShim {
   }
 
   private initialize($injector: any) {
-    const $rootScope = $injector.get('$rootScope');
-    const $rootElement = $injector.get('$rootElement');
+    const $rootScope = $injector.get('$rootScope') as angular.IRootScopeService;
+    const $rootElement = $injector.get('$rootElement') as angular.IRootElementService;
 
     $rootElement.on('click', (event: any) => {
       if (
@@ -180,7 +180,7 @@ export class $locationShim {
     });
 
     // update browser
-    $rootScope.$watch(() => {
+    let unwatch: VoidFunction | null = $rootScope.$watch(() => {
       if (this.initializing || this.updateBrowser) {
         this.updateBrowser = false;
 
@@ -243,6 +243,17 @@ export class $locationShim {
         }
       }
       this.$$replace = false;
+    });
+
+    $rootScope.$on('$destroy', () => {
+      // Complete the subject to release all active observers when the root
+      // scope is destroyed. Before this change, we subscribed to the `urlChanges`
+      // subject, and the subscriber captured `this`, leading to a memory leak
+      // after the root scope was destroyed.
+      this.urlChanges.complete();
+      // Deregister the listener.
+      unwatch!();
+      unwatch = null;
     });
   }
 

@@ -455,7 +455,6 @@
   "isNodeMatchingSelector",
   "isNodeMatchingSelectorList",
   "isOptionsObj",
-  "isPlatformServer",
   "isPositive",
   "isPresent",
   "isPromise",

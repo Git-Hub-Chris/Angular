@@ -284,6 +284,16 @@ export function withDomHydration(): EnvironmentProviders {
               // Note: the cleanup task *MUST* be scheduled within the Angular zone in Zone apps
               // to ensure that change detection is properly run afterward.
               whenStableWithTimeout(appRef, injector).then(() => {
+                // Note: we have to check whether the application is destroyed before
+                // performing other operations with the `injector`.
+                // The application may be destroyed **before** it becomes stable, so when
+                // the `whenStableWithTimeout` resolves, the injector might already be in
+                // a destroyed state. Thus, calling `injector.get` would throw an error
+                // indicating that the injector has already been destroyed.
+                if (appRef.destroyed) {
+                  return;
+                }
+
                 cleanupDehydratedViews(appRef);
                 if (typeof ngDevMode !== 'undefined' && ngDevMode) {
                   countBlocksSkippedByHydration(injector);
